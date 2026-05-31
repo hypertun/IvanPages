@@ -18,19 +18,92 @@
     }
     .container {
       padding: 2rem;
-      max-width: 400px;
+      max-width: 420px;
     }
     h1 { color: #4ade80; font-size: 1.5rem; }
     p { color: #aaa; font-size: 1rem; line-height: 1.5; }
     a { color: #60a5fa; text-decoration: none; }
     a:hover { text-decoration: underline; }
+
+    .order-box {
+      background: #16213e;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+    .order-label {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .order-id {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      word-break: break-all;
+      user-select: all;
+      cursor: pointer;
+    }
+    .copy-btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 16px;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .copy-btn:hover { background: #2563eb; }
+    .copy-btn:active { background: #1d4ed8; }
+    .copy-btn.copied { background: #22c55e; }
+
+    .hint {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    .open-app-btn {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 12px 28px;
+      background: #4ade80;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .open-app-btn:hover { background: #22c55e; }
+
+    #fallback { display: none; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Payment Successful!</h1>
-    <p>Returning to IvanClicker...</p>
-    <p id="fallback" style="display:none;">
+    <p>Your Pro subscription is now active.</p>
+
+    <div class="order-box">
+      <div class="order-label">Your Order ID</div>
+      <div class="order-id" id="order-id" title="Tap to select">Loading…</div>
+      <button class="copy-btn" id="copy-btn" onclick="copyOrderId()">Copy</button>
+      <div class="hint">Save this ID — you'll need it to restore your purchase if you reinstall the app.</div>
+    </div>
+
+    <a class="open-app-btn" id="open-app" href="#">Open IvanClicker</a>
+
+    <p id="fallback" style="margin-top: 16px;">
       Not opening automatically? <a id="deep-link" href="#">Tap here</a>
     </p>
   </div>
@@ -39,20 +112,45 @@
     var params = new URLSearchParams(window.location.search);
     var sessionId = params.get('session_id');
 
+    // Show the order ID
+    var orderIdEl = document.getElementById('order-id');
     if (sessionId) {
-      // Redirect to app via deep link
-      window.location.href = 'ivanclicker://payment-success?session_id=' + encodeURIComponent(sessionId);
+      orderIdEl.textContent = sessionId;
+    } else {
+      orderIdEl.textContent = 'Not found';
+      orderIdEl.style.color = '#ef4444';
     }
 
-    // Show fallback link after 3 seconds if app didn't open
+    // Copy to clipboard
+    function copyOrderId() {
+      if (!sessionId) return;
+      navigator.clipboard.writeText(sessionId).then(function() {
+        var btn = document.getElementById('copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // Deep link to app
+    var deepLink = 'ivanclicker://payment-success?session_id=' + encodeURIComponent(sessionId || '');
+
+    // "Open IvanClicker" button
+    document.getElementById('open-app').href = deepLink;
+
+    // Auto-redirect to app after 2 seconds (gives user time to see + copy order ID)
     setTimeout(function() {
-      var fallback = document.getElementById('fallback');
-      var deepLink = document.getElementById('deep-link');
-      if (fallback && deepLink) {
-        fallback.style.display = 'block';
-        deepLink.href = 'ivanclicker://payment-success?session_id=' + encodeURIComponent(sessionId || '');
-      }
-    }, 3000);
+      window.location.href = deepLink;
+    }, 2000);
+
+    // Show fallback after 5 seconds
+    setTimeout(function() {
+      document.getElementById('fallback').style.display = 'block';
+      document.getElementById('deep-link').href = deepLink;
+    }, 5000);
   </script>
 </body>
 </html>
