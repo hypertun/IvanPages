@@ -141,16 +141,14 @@
     // "Open IvanClicker" button
     document.getElementById('open-app').href = deepLink;
 
-    // Auto-redirect to app after 2 seconds (gives user time to see + copy order ID)
-    setTimeout(function() {
-      window.location.href = deepLink;
-    }, 2000);
+    // NO auto-redirect — user taps "Open IvanClicker" when ready
+    // (gives them time to copy the order ID first)
 
-    // Show fallback after 5 seconds
+    // Show fallback hint after 8 seconds if the button doesn't work
     setTimeout(function() {
       document.getElementById('fallback').style.display = 'block';
       document.getElementById('deep-link').href = deepLink;
-    }, 5000);
+    }, 8000);
   </script>
 </body>
 </html>
